@@ -1,0 +1,78 @@
+.canvas {
+  &__nav {
+    position: fixed;
+    right: 0;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    margin-bottom: 64px;
+    justify-content: space-between;
+
+    &__controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    &__shapes {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    &__colorpicker {
+      display: flex;
+      // align-items: center;
+      flex-direction: column;
+
+      p {
+        color: #fff;
+      }
+
+      input {
+        height: 35px;
+        width: 35px;
+      }
+    }
+
+    &__colors {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+
+  &__colors {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  &__board {
+    padding: 20px;
+    padding-top: 80px;
+    height: 100vh;
+  }
+}
+
+.shapes__btn {
+  display: flex;
+  align-items: center;
+}
+
+.color {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #fff;
+}
+
+.color-active {
+  width: 35px;
+  height: 35px;
+  border: 2px solid #fff;
+}
+
+.download__btn {
+  font-family: "Roboto", sans-serif !important;
+}
