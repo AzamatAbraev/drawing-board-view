@@ -1,0 +1,76 @@
+.boards {
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  &__add__image {
+    img {
+      width: 400px;
+      height: 400px;
+    }
+  }
+
+  &__container {
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+}
+
+.board__add {
+  padding: 10px;
+  height: 100%;
+
+  &__title {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-size: 30px;
+    text-align: center;
+  }
+}
+
+.error {
+  color: red;
+  min-height: 20px;
+}
+
+#createBoard {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  input,
+  textarea {
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #4285f4;
+  }
+}
+
+.board__input {
+  width: 100%;
+  padding: 10px 20px;
+}
+
+@media (max-width: 1000px) {
+  .boards__row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .boards__row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .boards__row {
+    grid-template-columns: 1fr;
+    margin-right: 30px;
+    margin-left: 30px;
+    gap: 30px;
+  }
+}

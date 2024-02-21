@@ -1,66 +1,106 @@
 import { useEffect, useState } from "react";
-import request from "../server/request";
 import BoardType from "../types/board";
-import { useNavigate } from "react-router-dom";
+import BoardCard from "../components/card/BoardCard";
+
+import plusSign from "../assets/plus-sign.png"
+
+import "./Boards.scss"
 import useBoard from "../store/board";
 
 const BoardsPage = () => {
-  const { joinBoard } = useBoard()
-  const navigate = useNavigate()
-
-  const [boards, setBoards] = useState<BoardType[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [open, setOpen] = useState(false);
+  const [creator, setCreator] = useState("")
+
+  const [nameError, setNameError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+  const [creatorError, setCreatorError] = useState('');
+  const [lengthError, setLengthError] = useState("")
+
+  const validate = () => {
+    let isValid = true;
+    if (!creator) {
+      setCreatorError("Please provide your name");
+      isValid = false;
+    } else {
+      setCreatorError("");
+    }
+
+    if (!name) {
+      setNameError("Please provide board name");
+      isValid = false;
+    } else {
+      setNameError("");
+    }
+
+    if (!description) {
+      setDescriptionError("Please provide description");
+      isValid = false;
+    } else {
+      setDescriptionError("");
+    }
+
+    if (description.length > 40 || name.length > 20 || creator.length > 20) {
+      isValid = false;
+      setLengthError("Input length should not be exceeded")
+    } else {
+      setLengthError("")
+    }
+
+    return isValid;
+  }
+
+  const { createBoard, getAllBoards, boards } = useBoard()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      console.log("hello");
-
-      const { data } = await request.post('boards', { name, description });
-      console.log('Board created:', { data });
-      navigate("/board");
-    } catch (error) {
-      console.error('Error creating board:', error);
+    const isValid = validate();
+    if (isValid) {
+      try {
+        const values = { name, description, creator }
+        await createBoard(values);
+        setOpen(false)
+      } catch (error) {
+        console.error('Error creating board:', error);
+      }
     }
   };
 
 
   useEffect(() => {
-    const getBoards = async () => {
-      try {
-        const { data } = await request.get("boards");
-        setBoards(data)
-        console.log(data);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    getBoards()
-  }, [])
+    getAllBoards()
+  }, [getAllBoards])
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Board Name:
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label>
-          Description (optional):
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-        <button type="submit">Create Board</button>
-      </form>
-      <h2>Select a Board to Join</h2>
-      <ul>
+    <div className="container boards__container">
+      <div className="boards__row">
+        <div className="boards__new">
+          <div className="board__card board">
+            <div className="board__image">
+              {!open ? <img onClick={() => setOpen(true)} src={plusSign} alt="Add New Board" /> : null}
+            </div>
+            {open ? <div className="board__content board__add">
+              <div className="board__add__header">
+                <h2 className="board__add__title">Create your board</h2>
+              </div>
+              <form id="createBoard" onSubmit={handleSubmit}>
+                <input placeholder="Your name" className="board__input" type="text" value={creator} onChange={(e) => setCreator(e.target.value)} />
+                <div className="error">{creatorError && creatorError}</div>
+                <input placeholder="Board Name" className="board__input" type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                <div className="error">{nameError && nameError}</div>
+                <textarea className="board__textarea" placeholder="Please describe your board" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <div className="error">{descriptionError && descriptionError}</div>
+                <div className="error">{lengthError && lengthError}</div>
+                <button className="board__btn" type="submit">Create Board</button>
+              </form>
+            </div> : null}
+          </div>
+        </div>
         {boards.map((board: BoardType) => (
-          <li key={board._id}>
-            {board.name} - <button onClick={() => joinBoard(board._id, navigate)}>Join</button>
-          </li>
+          <BoardCard key={board._id} {...board} />
         ))}
-      </ul>
+      </div>
     </div>
   )
 }

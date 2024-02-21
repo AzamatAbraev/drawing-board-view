@@ -18,7 +18,8 @@ import useDraw from '../../hooks/useDraw';
 import { DrawType, Point } from '../../types/typing';
 import socket from '../../server/socket';
 import drawLine from '../../utils/drawLine';
-// import useBoard from '../../store/board';
+import useBoard from '../../store/board';
+import { useNavigate, useParams } from 'react-router-dom';
 
 type DrawLineProps = {
   prevPoint: Point | null;
@@ -27,8 +28,12 @@ type DrawLineProps = {
 }
 
 const DrawingBoard = () => {
+
+  const { getSingleBoard, board } = useBoard()
+  const { id: boardId } = useParams()
+  const navigate = useNavigate()
+
   const [color, setColor] = useState("#000000");
-  const boardId = localStorage.getItem("BOARD_ID");
 
   const shouldClearConfirm = () => {
     Modal.confirm({
@@ -52,6 +57,36 @@ const DrawingBoard = () => {
     socket.emit("draw_line", ({ boardId, prevPoint, currentPoint, color }))
     drawLine({ prevPoint, currentPoint, ctx, color })
   }
+
+  const downloadCanvas = () => {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+
+    const ctx = tempCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      ctx.drawImage(canvas, 0, 0);
+
+      const image = tempCanvas.toDataURL("image/png");
+
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `${board.name}.png`;
+      downloadLink.href = image;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  };
+
+
+  const handleDownload = () => {
+    downloadCanvas();
+  };
+
 
 
   const { canvasRef, onMouseDown, clear } = useDraw(createLine)
@@ -97,12 +132,16 @@ const DrawingBoard = () => {
 
   }, [canvasRef, clear, boardId, clearCanvas])
 
+  useEffect(() => {
+    getSingleBoard(boardId)
+  }, [getSingleBoard, boardId])
+
 
 
   return (
     <Layout className='canvas'>
       <Header className='canvas__nav'>
-        <h1 style={{ color: "#fff" }}>Board: {boardId}</h1>
+        <h1 style={{ color: "#fff" }}>Board: {board.name}</h1>
         <div className="canvas__nav__controls">
           <Button><img src={drawer} alt="Draw" /></Button>
           <Button ><img src={selector} alt="Text Select" /></Button>
@@ -115,10 +154,6 @@ const DrawingBoard = () => {
           <Button><img src={square} alt="square" /></Button>
           <Button><img src={star} alt="star" /></Button>
         </div>
-        {/* <div>
-          <input type="text" placeholder='Board Id' onChange={(e) => setBoardId(e.target.value)} />
-          <button onClick={() => joinBoard()}>Join</button>
-        </div> */}
         <div className='canvas__nav__colors'>
           <div className="canvas__nav__colorpicker">
             <input onChange={(e) => handleColorChange(e.target.value)} value={color} type="color" />
@@ -138,8 +173,9 @@ const DrawingBoard = () => {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }} className='canvas__nav__download'>
-          <Button className='download__btn'>Download</Button>
+          <Button onClick={handleDownload} className='download__btn'>Download</Button>
           <Button onClick={shouldClearConfirm} className='download__btn'>Clear</Button>
+          <Button onClick={() => navigate("/")} className='download__btn'>See All Boards</Button>
         </div>
       </Header>
       <Content className='canvas__board'>
