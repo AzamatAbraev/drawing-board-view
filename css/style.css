@@ -1,15 +1,67 @@
-.toolbox {
+.canvas__nav {
   position: fixed;
-  top: 0;
-  left: 0;
   right: 0;
-  z-index: 10;
-  background-color: red;
-}
-.toolbox__container {
+  left: 0;
+  top: 0;
   display: flex;
   align-items: center;
+  margin-bottom: 64px;
   justify-content: space-between;
-  padding-bottom: 30px;
-  padding: 20px 20px;
+}
+.canvas__nav__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.canvas__nav__shapes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.canvas__nav__colorpicker {
+  display: flex;
+  flex-direction: column;
+}
+.canvas__nav__colorpicker p {
+  color: #fff;
+}
+.canvas__nav__colorpicker input {
+  height: 35px;
+  width: 35px;
+}
+.canvas__nav__colors {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.canvas__colors {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.canvas__board {
+  padding: 20px;
+  padding-top: 80px;
+  height: 100vh;
+}
+
+.shapes__btn {
+  display: flex;
+  align-items: center;
+}
+
+.color {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #fff;
+}
+
+.color-active {
+  width: 35px;
+  height: 35px;
+  border: 2px solid #fff;
+}
+
+.download__btn {
+  font-family: "Roboto", sans-serif !important;
 }
