@@ -12,7 +12,7 @@ const BoardCard = (board: BoardType) => {
   return (
     <div className="board__card board">
       <div className="board__image">
-        <img src={notFound} alt={`Board ID: ${board.description}`} />
+        <img src={board.thumbnail || notFound} alt={`Board ID: ${board.description}`} />
       </div>
       <div className="board__content">
         <h3 className="board__name">{board?.name} by {board.creator}</h3>

@@ -1,3 +1,6 @@
+.canvas {
+  background-color: #fff;
+}
 .canvas__nav {
   position: fixed;
   right: 0;
@@ -43,6 +46,10 @@
   padding: 20px;
   padding-top: 80px;
   height: 100vh;
+}
+
+.active {
+  border: solid blue;
 }
 
 .shapes__btn {

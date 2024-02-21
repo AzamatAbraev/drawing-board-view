@@ -12,7 +12,6 @@ import rectangle from "../../assets/rectangle.svg"
 import square from "../../assets/square.svg"
 import star from "../../assets/star.svg"
 
-import "./style.scss"
 import { useCallback, useEffect, useState } from 'react';
 import useDraw from '../../hooks/useDraw';
 import { DrawType, Point } from '../../types/typing';
@@ -20,6 +19,9 @@ import socket from '../../server/socket';
 import drawLine from '../../utils/drawLine';
 import useBoard from '../../store/board';
 import { useNavigate, useParams } from 'react-router-dom';
+
+import "./style.scss"
+import request from '../../server/request';
 
 type DrawLineProps = {
   prevPoint: Point | null;
@@ -34,6 +36,7 @@ const DrawingBoard = () => {
   const navigate = useNavigate()
 
   const [color, setColor] = useState("#000000");
+  const [currentTool, setCurrentTool] = useState('draw');
 
   const shouldClearConfirm = () => {
     Modal.confirm({
@@ -71,10 +74,10 @@ const DrawingBoard = () => {
 
       ctx.drawImage(canvas, 0, 0);
 
-      const image = tempCanvas.toDataURL("image/png");
+      const image = tempCanvas.toDataURL("image/jpeg");
 
       const downloadLink = document.createElement('a');
-      downloadLink.download = `${board.name}.png`;
+      downloadLink.download = `${board.name}.jpg`;
       downloadLink.href = image;
       document.body.appendChild(downloadLink);
       downloadLink.click();
@@ -87,6 +90,22 @@ const DrawingBoard = () => {
     downloadCanvas();
   };
 
+  const captureCanvasAsDataURL = () => {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (canvas) {
+      return canvas.toDataURL("image/jpeg");
+    }
+    return null;
+  };
+
+  const updateThumbnail = async (boardId: string | undefined, thumbnailDataUrl: string) => {
+    try {
+      const { data } = await request.post(`boards/${boardId}/thumbnail`, { thumbnail: thumbnailDataUrl })
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
 
   const { canvasRef, onMouseDown, clear } = useDraw(createLine)
@@ -136,6 +155,19 @@ const DrawingBoard = () => {
     getSingleBoard(boardId)
   }, [getSingleBoard, boardId])
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const thumbnailDataUrl = captureCanvasAsDataURL();
+      if (thumbnailDataUrl && boardId) {
+        updateThumbnail(boardId, thumbnailDataUrl)
+          .then(() => console.log('Thumbnail updated'))
+          .catch((error) => console.error('Failed to update thumbnail:', error));
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [boardId]);
+
 
 
   return (
@@ -143,9 +175,9 @@ const DrawingBoard = () => {
       <Header className='canvas__nav'>
         <h1 style={{ color: "#fff" }}>Board: {board.name}</h1>
         <div className="canvas__nav__controls">
-          <Button><img src={drawer} alt="Draw" /></Button>
+          <Button className={currentTool === 'draw' ? "active" : ""} onClick={() => setCurrentTool('draw')}><img src={drawer} alt="Draw" /></Button>
           <Button ><img src={selector} alt="Text Select" /></Button>
-          <Button><img src={eraser} alt="Erase" /></Button>
+          <Button className={currentTool === 'erase' ? "active" : ""} onClick={() => setCurrentTool('erase')}><img src={eraser} alt="Erase" /></Button>
         </div>
         <div className='canvas__nav__shapes'>
           <Button><img src={circle} alt="circle" /></Button>
@@ -179,7 +211,7 @@ const DrawingBoard = () => {
         </div>
       </Header>
       <Content className='canvas__board'>
-        <canvas onMouseDown={onMouseDown} style={{ border: `2px solid black` }} width={window.innerWidth - 40} height={window.innerHeight - 90} ref={canvasRef} id='canvas' className='board'></canvas>
+        <canvas onMouseDown={onMouseDown} style={{ border: `2px solid black`, backgroundColor: "#fff" }} width={window.innerWidth - 40} height={window.innerHeight - 90} ref={canvasRef} id='canvas' className='board'></canvas>
       </Content>
     </Layout >
   );
