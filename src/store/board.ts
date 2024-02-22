@@ -3,12 +3,14 @@ import { create } from "zustand";
 import socket from "../server/socket";
 import request from "../server/request";
 import BoardType from "../types/board";
+import { message } from "antd";
 
 interface BoardState {
   boardId: string;
   username: string;
   board: Record<string, never>;
   boards: BoardType[];
+  loading: boolean;
 
   joinBoard: (id: string, navigate: NavigateFunction) => void;
   createBoard: (values: {
@@ -25,6 +27,7 @@ const useBoard = create<BoardState>()((set, get) => ({
   username: "",
   board: {},
   boards: [],
+  loading: false,
 
   joinBoard: (id, navigate) => {
     if (id) {
@@ -38,17 +41,23 @@ const useBoard = create<BoardState>()((set, get) => ({
     try {
       const { data } = await request.post("boards", values);
       set({ username: data.creator, boardId: data.id });
+      message.success("Board created successfully");
       get().getAllBoards();
     } catch (error) {
-      console.log(error);
+      message.error("Error: Please try again or contact IT department");
     }
   },
   getAllBoards: async () => {
     try {
+      set({ loading: true });
       const { data } = await request.get("boards");
       set({ boards: data });
     } catch (error) {
-      console.log(error);
+      message.error(
+        "Server error: please try again later or contact IT department",
+      );
+    } finally {
+      set({ loading: false });
     }
   },
   getSingleBoard: async (id) => {
@@ -57,7 +66,7 @@ const useBoard = create<BoardState>()((set, get) => ({
         const { data } = await request.get(`boards/${id}`);
         set({ board: data });
       } catch (error) {
-        console.log(error);
+        message.error("Error: please try again later or contact IT department");
       }
     }
   },

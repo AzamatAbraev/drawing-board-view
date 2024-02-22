@@ -2,7 +2,6 @@ import { Button, Layout, Modal } from 'antd';
 const { Header, Content } = Layout;
 
 
-import selector from "../../assets/select.svg";
 import drawer from "../../assets/draw.svg";
 import eraser from "../../assets/eraser.svg";
 
@@ -38,18 +37,19 @@ const DrawingBoard = () => {
   const [color, setColor] = useState("#000000");
   const [currentTool, setCurrentTool] = useState('draw');
 
+
+
   const shouldClearConfirm = () => {
     Modal.confirm({
       title: 'Are you sure you want to clear the board?',
       content: 'This action will remove all drawings and cannot be undone.',
       onOk() {
         clearCanvas();
-      },
-      onCancel() {
-        console.log('Cancel');
-      },
+      }
     });
   };
+
+
 
 
   const handleColorChange = (newColor: string) => {
@@ -90,25 +90,49 @@ const DrawingBoard = () => {
     downloadCanvas();
   };
 
-  const captureCanvasAsDataURL = () => {
+  const captureCanvasAsDataURL = useCallback(() => {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     if (canvas) {
       return canvas.toDataURL("image/jpeg");
     }
     return null;
-  };
+  }, []);
 
-  const updateThumbnail = async (boardId: string | undefined, thumbnailDataUrl: string) => {
+  const updateThumbnail = useCallback(async (boardId: string | undefined, thumbnailDataUrl: string) => {
     try {
       const { data } = await request.post(`boards/${boardId}/thumbnail`, { thumbnail: thumbnailDataUrl })
       return data;
     } catch (error) {
       console.log(error);
     }
-  };
+  }, []);
 
 
   const { canvasRef, onMouseDown, clear } = useDraw(createLine)
+
+  const handleErase = useCallback(() => {
+    setColor("#ffffff");
+    setCurrentTool('erase')
+  }, [])
+
+  const handleDraw = () => {
+    setColor("#000000")
+    setCurrentTool('draw')
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    const backgroundColor = '#ffffff';
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }, [canvasRef]);
+
+
 
   const clearCanvas = useCallback(() => {
     const ctx = canvasRef.current?.getContext('2d');
@@ -117,7 +141,14 @@ const DrawingBoard = () => {
     }
 
     socket.emit("clear", boardId);
-  }, [boardId, canvasRef])
+
+    const clearedThumbnailDataUrl = captureCanvasAsDataURL();
+    if (clearedThumbnailDataUrl && boardId) {
+      updateThumbnail(boardId, clearedThumbnailDataUrl)
+        .then(() => console.log('Thumbnail updated'))
+        .catch((error) => console.error('Failed to update thumbnail after clearing:', error));
+    }
+  }, [boardId, canvasRef, updateThumbnail, captureCanvasAsDataURL])
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
@@ -155,29 +186,26 @@ const DrawingBoard = () => {
     getSingleBoard(boardId)
   }, [getSingleBoard, boardId])
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const thumbnailDataUrl = captureCanvasAsDataURL();
-      if (thumbnailDataUrl && boardId) {
-        updateThumbnail(boardId, thumbnailDataUrl)
-          .then(() => console.log('Thumbnail updated'))
-          .catch((error) => console.error('Failed to update thumbnail:', error));
-      }
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [boardId]);
+  const navigateToBoards = () => {
+    navigate("/")
+    const thumbnailDataUrl = captureCanvasAsDataURL();
+    if (thumbnailDataUrl && boardId) {
+      updateThumbnail(boardId, thumbnailDataUrl)
+        .then(() => console.log('Thumbnail updated'))
+        .catch((error) => console.error('Failed to update thumbnail:', error));
+    }
+  }
 
 
 
   return (
     <Layout className='canvas'>
       <Header className='canvas__nav'>
-        <h1 style={{ color: "#fff" }}>Board: {board.name}</h1>
+        <h1 className='canvas__title' style={{ color: "#fff" }}>Board: {board.name}</h1>
         <div className="canvas__nav__controls">
-          <Button className={currentTool === 'draw' ? "active" : ""} onClick={() => setCurrentTool('draw')}><img src={drawer} alt="Draw" /></Button>
-          <Button ><img src={selector} alt="Text Select" /></Button>
-          <Button className={currentTool === 'erase' ? "active" : ""} onClick={() => setCurrentTool('erase')}><img src={eraser} alt="Erase" /></Button>
+          <Button className={currentTool === 'draw' ? "active" : ""} onClick={handleDraw}><img src={drawer} alt="Draw" /></Button>
+          {/* <Button ><img src={selector} alt="Text Select" /></Button> */}
+          <Button className={`eraser__btn ${currentTool === 'erase' ? "active" : ""}`} onClick={handleErase}><img src={eraser} alt="Erase" /></Button>
         </div>
         <div className='canvas__nav__shapes'>
           <Button><img src={circle} alt="circle" /></Button>
@@ -207,11 +235,11 @@ const DrawingBoard = () => {
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }} className='canvas__nav__download'>
           <Button onClick={handleDownload} className='download__btn'>Download</Button>
           <Button onClick={shouldClearConfirm} className='download__btn'>Clear</Button>
-          <Button onClick={() => navigate("/")} className='download__btn'>See All Boards</Button>
+          <Button onClick={navigateToBoards} className='download__btn'>See All Boards</Button>
         </div>
       </Header>
       <Content className='canvas__board'>
-        <canvas onMouseDown={onMouseDown} style={{ border: `2px solid black`, backgroundColor: "#fff" }} width={window.innerWidth - 40} height={window.innerHeight - 90} ref={canvasRef} id='canvas' className='board'></canvas>
+        <canvas onMouseDown={onMouseDown} style={{ border: "2px solid black" }} width={window.innerWidth - 40} height={window.innerHeight - 90} ref={canvasRef} id='canvas' className='board'></canvas>
       </Content>
     </Layout >
   );

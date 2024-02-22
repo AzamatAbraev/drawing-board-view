@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import BoardType from "../types/board";
 import BoardCard from "../components/card/BoardCard";
 
@@ -6,6 +6,7 @@ import plusSign from "../assets/plus-sign.png"
 
 import "./Boards.scss"
 import useBoard from "../store/board";
+import LoadingPage from "../components/loading";
 
 const BoardsPage = () => {
   const [name, setName] = useState('');
@@ -51,7 +52,7 @@ const BoardsPage = () => {
     return isValid;
   }
 
-  const { createBoard, getAllBoards, boards } = useBoard()
+  const { createBoard, getAllBoards, boards, loading } = useBoard()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,35 +74,37 @@ const BoardsPage = () => {
   }, [getAllBoards])
 
   return (
-    <div className="container boards__container">
-      <div className="boards__row">
-        <div className="boards__new">
-          <div className="board__card board">
-            <div className="board__image">
-              {!open ? <img onClick={() => setOpen(true)} src={plusSign} alt="Add New Board" /> : null}
-            </div>
-            {open ? <div className="board__content board__add">
-              <div className="board__add__header">
-                <h2 className="board__add__title">Create your board</h2>
+    <Fragment>
+      {loading ? <LoadingPage /> : <div className="container boards__container">
+        <div className="boards__row">
+          <div className="boards__new">
+            <div className="board__card board">
+              <div className="board__image">
+                {!open ? <img onClick={() => setOpen(true)} src={plusSign} alt="Add New Board" /> : null}
               </div>
-              <form id="createBoard" onSubmit={handleSubmit}>
-                <input placeholder="Your name" className="board__input" type="text" value={creator} onChange={(e) => setCreator(e.target.value)} />
-                <div className="error">{creatorError && creatorError}</div>
-                <input placeholder="Board Name" className="board__input" type="text" value={name} onChange={(e) => setName(e.target.value)} />
-                <div className="error">{nameError && nameError}</div>
-                <textarea className="board__textarea" placeholder="Please describe your board" value={description} onChange={(e) => setDescription(e.target.value)} />
-                <div className="error">{descriptionError && descriptionError}</div>
-                <div className="error">{lengthError && lengthError}</div>
-                <button className="board__btn" type="submit">Create Board</button>
-              </form>
-            </div> : null}
+              {open ? <div className="board__content board__add">
+                <div className="board__add__header">
+                  <h2 className="board__add__title">Create your board</h2>
+                </div>
+                <form id="createBoard" onSubmit={handleSubmit}>
+                  <input placeholder="Your name" className="board__input" type="text" value={creator} onChange={(e) => setCreator(e.target.value)} />
+                  <div className="error">{creatorError && creatorError}</div>
+                  <input placeholder="Board Name" className="board__input" type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                  <div className="error">{nameError && nameError}</div>
+                  <textarea className="board__textarea" placeholder="Please describe your board" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <div className="error">{descriptionError && descriptionError}</div>
+                  <div className="error">{lengthError && lengthError}</div>
+                  <button className="board__btn" type="submit">Create Board</button>
+                </form>
+              </div> : null}
+            </div>
           </div>
+          {boards.map((board: BoardType) => (
+            <BoardCard key={board._id} {...board} />
+          ))}
         </div>
-        {boards.map((board: BoardType) => (
-          <BoardCard key={board._id} {...board} />
-        ))}
-      </div>
-    </div>
+      </div>}
+    </Fragment>
   )
 }
 

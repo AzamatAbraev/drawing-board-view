@@ -80,3 +80,27 @@
 .download__btn {
   font-family: "Roboto", sans-serif !important;
 }
+
+#canvas {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1300px) {
+  .canvas__nav__shapes {
+    display: none;
+  }
+}
+
+@media (max-width: 1050px) {
+  .canvas__colors,
+  .color-active {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .canvas__title {
+    display: none;
+  }
+}
