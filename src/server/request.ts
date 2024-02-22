@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const request = axios.create({
-  baseURL: "http://localhost:3000/api/",
+  baseURL: "https://drawing-board.up.railway.app/api/",
   timeout: 10000,
 });
 
